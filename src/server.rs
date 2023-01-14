@@ -13,7 +13,7 @@ use websocket::{
     OwnedMessage, WebSocketResult,
 };
 
-use crate::{game::Game, Frame, Input};
+use crate::{Frame, Game, Input};
 
 pub fn run_server<G: Game>(game: G) {
     thread::spawn(run_http_server);
