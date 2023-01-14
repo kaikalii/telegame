@@ -6,6 +6,7 @@ version = "0.1.0"
 [dependencies]
 glam.features = ["serde"]
 glam.version = "0.22.0"
+mime_guess.version = "2"
 open = "3"
 serde.features = ["derive"]
 serde.version = "1"

@@ -70,29 +70,26 @@ fn handle_http_request_impl(stream: io::Result<TcpStream>) -> io::Result<()> {
             .nth(1)
             .unwrap()
             .to_owned();
-        if path == "/getframe" {
-            // Frame path
-            stream.write_all("HTTP/1.1 200 OK".as_bytes())?;
-            lprintln!("Served frame on {}", stream.peer_addr()?)
-        } else {
-            // Site paths
-            if path == "/" {
-                path = "/index.html".into();
-            }
-            // Read the file
-            let (status, contents) = match fs::read(format!("site{path}")) {
-                Ok(contents) => ("HTTP/1.1 200 OK", contents),
-                Err(e) => {
-                    lprintln!("unable to find {path}: {e}");
-                    ("HTTP/1.1 404 Not Found", e.to_string().into_bytes())
-                }
-            };
-            // Write the response
-            let length = contents.len();
-            stream.write_all(format!("{status}\r\nContent-Length: {length}\r\n\r\n").as_bytes())?;
-            stream.write_all(&contents)?;
-            lprintln!("Served {path} on {}", stream.peer_addr()?);
+        if path == "/" {
+            path = "/index.html".into();
         }
+        // Read the file
+        let (status, contents) = match fs::read(format!("site{path}")) {
+            Ok(contents) => ("HTTP/1.1 200 OK", contents),
+            Err(e) => {
+                lprintln!("unable to find {path}: {e}");
+                ("HTTP/1.1 404 Not Found", e.to_string().into_bytes())
+            }
+        };
+        // Write the response
+        let length = contents.len();
+        let mime = mime_guess::from_path(&path).first_raw().unwrap_or_default();
+        stream.write_all(
+            format!("{status}\r\nContent-Type: {mime}\r\nContent-Length: {length}\r\n\r\n")
+                .as_bytes(),
+        )?;
+        stream.write_all(&contents)?;
+        lprintln!("Served {path} on {}", stream.peer_addr()?);
     }
 }
 
