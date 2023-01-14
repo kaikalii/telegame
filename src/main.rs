@@ -21,6 +21,10 @@ impl Game for MyGame {
         frame.color("red");
         frame.rectangle(input.mouse_pos - size / 2.0, size);
 
+        frame.color("black");
+        frame.font("48px Arial");
+        frame.text(vec2(100.0, 300.0), "Hello, world!");
+
         frame
     }
 }

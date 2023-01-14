@@ -56,7 +56,6 @@ function setMousePos(evt) {
 }
 
 function draw(frame) {
-
     for (const com of frame.commands) {
         switch (com.type) {
             case "clear": ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -69,6 +68,12 @@ function draw(frame) {
                 ctx.arc(com.pos.x, com.pos.y, com.radius, 0, 2 * Math.PI);
                 ctx.fill();
                 break
+            case "font":
+                ctx.font = com.font
+                break;
+            case "text":
+                ctx.fillText(com.text, com.pos.x, com.pos.y);
+                break;
             default:
                 console.log("Unknown command: " + com.type);
                 break;

@@ -26,6 +26,14 @@ pub enum Command {
         pos: Vec2,
         radius: f32,
     },
+    Font {
+        font: String,
+    },
+    Text {
+        #[serde(with = "ser_vec2")]
+        pos: Vec2,
+        text: String,
+    },
 }
 
 impl Frame {
@@ -42,5 +50,14 @@ impl Frame {
     }
     pub fn circle(&mut self, pos: Vec2, radius: f32) {
         self.commands.push(Command::Circle { pos, radius });
+    }
+    pub fn font(&mut self, font: &str) {
+        self.commands.push(Command::Font { font: font.into() });
+    }
+    pub fn text(&mut self, pos: Vec2, text: &str) {
+        self.commands.push(Command::Text {
+            pos,
+            text: text.into(),
+        });
     }
 }
