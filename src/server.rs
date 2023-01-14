@@ -13,13 +13,11 @@ use websocket::{
     OwnedMessage, WebSocketResult,
 };
 
-use crate::{Frame, Input};
+use crate::{game::Game, Frame, Input};
 
-type MakeFrame = fn(Input) -> Frame;
-
-pub fn run_server(make_frame: MakeFrame) {
+pub fn run_server<G: Game>(game: G) {
     thread::spawn(run_http_server);
-    thread::spawn(move || run_socket_server(make_frame));
+    thread::spawn(move || run_socket_server(game));
     loop {
         sleep(Duration::from_secs(1));
     }
@@ -29,14 +27,6 @@ fn run_http_server() {
     let listener = TcpListener::bind("0.0.0.0:8000").unwrap();
     for stream in listener.incoming() {
         thread::spawn(move || handle_http_request(stream));
-    }
-}
-
-fn run_socket_server(make_frame: MakeFrame) {
-    let server = Server::bind("0.0.0.0:8001").unwrap();
-    for request in server.filter_map(Result::ok) {
-        // Spawn a new thread for each connection.
-        thread::spawn(move || handle_socket_request(request, make_frame).unwrap());
     }
 }
 
@@ -113,9 +103,20 @@ struct Response {
     error: Option<String>,
 }
 
-fn handle_socket_request(
+fn run_socket_server<G: Game>(mut game: G) {
+    let server = Server::bind("0.0.0.0:8001").unwrap();
+    for request in server.filter_map(Result::ok) {
+        // Spawn a new thread for each connection.
+        let state = game.new_state();
+        thread::scope(move |s| {
+            s.spawn(move || handle_socket_request::<G>(state, request).unwrap());
+        });
+    }
+}
+
+fn handle_socket_request<G: Game>(
+    mut state: G::State,
     request: WsUpgrade<TcpStream, Option<Buffer>>,
-    make_frame: MakeFrame,
 ) -> WebSocketResult<()> {
     // if !request.protocols().contains(&"rust-websocket".to_string()) {
     //     request.reject().unwrap();
@@ -133,11 +134,14 @@ fn handle_socket_request(
         match message {
             OwnedMessage::Text(message) => {
                 let resp = match serde_json::from_str::<Input>(&message) {
-                    Ok(input) => Response {
-                        success: true,
-                        frame: Some(make_frame(input)),
-                        ..Default::default()
-                    },
+                    Ok(input) => {
+                        let frame = G::make_frame(&mut state, input);
+                        Response {
+                            success: true,
+                            frame: Some(frame),
+                            ..Default::default()
+                        }
+                    }
                     Err(e) => Response {
                         success: false,
                         error: Some(format!("Unable to parse input json: {e}")),

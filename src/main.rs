@@ -2,11 +2,25 @@ use glam::vec2;
 use telegame::*;
 
 fn main() {
-    run_server(|input| {
+    run_server(MyGame);
+}
+
+struct MyGame;
+
+impl Game for MyGame {
+    type State = ();
+    fn new_state(&mut self) -> Self::State {}
+    fn make_frame(_state: &mut Self::State, input: Input) -> Frame {
         let mut frame = Frame::default();
+        frame.clear();
+
+        frame.color("blue");
         let size = vec2(100.0, 100.0);
-        frame.circle(input.window_size / 2.0, 200.0, "blue");
-        frame.rectangle(input.mouse_pos - size / 2.0, size, "red");
+        frame.circle(input.window_size / 2.0, 200.0);
+
+        frame.color("red");
+        frame.rectangle(input.mouse_pos - size / 2.0, size);
+
         frame
-    });
+    }
 }

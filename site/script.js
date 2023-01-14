@@ -32,13 +32,17 @@ window.onresize = function (event) {
 const windowWidth = () => canvas.width;
 const windowHeight = () => canvas.height;
 
+function getInput() {
+    return {
+        closed: false,
+        mouse_pos: mousePos,
+        window_size: { x: windowWidth(), y: windowHeight() }
+    };
+}
+
 function run() {
     if (socket.readyState === WebSocket.OPEN) {
-        let input = {
-            mouse_pos: mousePos,
-            window_size: { x: windowWidth(), y: windowHeight() }
-        }
-        socket.send(JSON.stringify(input));
+        socket.send(JSON.stringify(getInput()));
     }
     setTimeout(run, 0);
 }
@@ -51,31 +55,23 @@ function setMousePos(evt) {
     mousePos.y = (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height;
 }
 
-function rectangle(x, y, width, height, color) {
-    ctx.fillStyle = color;
-    ctx.fillRect(x, y, width, height);
-}
-
-function circle(x, y, radius, color) {
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
-    ctx.fillStyle = color;
-    ctx.fill();
-}
-
 function draw(frame) {
-    if (frame.clear) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
 
-    for (const shape of frame.shapes) {
-        switch (shape.type) {
-            case "rectangle":
-                rectangle(shape.pos.x, shape.pos.y, shape.size.x, shape.size.y, shape.color);
+    for (const com of frame.commands) {
+        switch (com.type) {
+            case "clear": ctx.clearRect(0, 0, canvas.width, canvas.height);
+                break;
+            case "color": ctx.fillStyle = com.color;
+                break;
+            case "rectangle": ctx.fillRect(com.pos.x, com.pos.y, com.size.x, com.size.y);
                 break
-            case "circle":
-                circle(shape.pos.x, shape.pos.y, shape.radius, shape.color);
+            case "circle": ctx.beginPath();
+                ctx.arc(com.pos.x, com.pos.y, com.radius, 0, 2 * Math.PI);
+                ctx.fill();
                 break
+            default:
+                console.log("Unknown command: " + com.type);
+                break;
         }
     }
 }

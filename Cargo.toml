@@ -6,6 +6,7 @@ version = "0.1.0"
 [dependencies]
 glam.features = ["serde"]
 glam.version = "0.22.0"
+open = "3"
 serde.features = ["derive"]
 serde.version = "1"
 serde_json.version = "1"
