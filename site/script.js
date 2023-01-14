@@ -2,19 +2,6 @@
 let canvas;
 let ctx;
 
-// Socket
-let socket = new WebSocket("ws://localhost:8001");
-socket.onopen = function (e) {
-    console.log("[open] Connection established");
-}
-socket.onmessage = function (e) {
-    let resp = JSON.parse(e.data);
-    if (resp.success)
-        draw(resp.frame);
-    else
-        console.log(resp.error);
-}
-
 // Window
 window.onload = function () {
     canvas = document.getElementById("canvas");
@@ -24,9 +11,19 @@ window.onload = function () {
     run();
 }
 function run() {
-    if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(getInput()));
-    }
+    fetch("http://127.0.0.1:8001", {
+        method: "POST",
+        headers: {
+            mode: "no-cors",
+        },
+        body: JSON.stringify(getInput())
+    })
+        .then(resp => resp.json())
+        .then(json => {
+            let frame = JSON.parse(json);
+            draw(frame);
+        })
+        .catch(err => console.log("Error getting frame: " + err));
     setTimeout(run, 0);
 }
 
