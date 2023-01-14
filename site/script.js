@@ -29,14 +29,57 @@ window.onresize = function (event) {
     canvas.height = window.innerHeight;
 };
 
+let keys = []
+let keysDown = []
+
+window.onkeydown = function (event) {
+    keys.push({
+        key: event.key,
+        pressed: true,
+        alt: event.altKey,
+        ctrl: event.ctrlKey,
+        shift: event.shiftKey,
+        meta: event.metaKey,
+        repeat: event.repeat
+    });
+    if (!keysDown.includes(event.key))
+        keysDown.push(event.key);
+}
+
+window.onkeyup = function (event) {
+    keys.push({
+        key: event.key,
+        pressed: false,
+        alt: event.altKey,
+        ctrl: event.ctrlKey,
+        shift: event.shiftKey,
+        meta: event.metaKey,
+        repeat: event.repeat
+    });
+    var index = keysDown.indexOf(event.key);
+    if (index !== -1) {
+        keysDown.splice(index, 1);
+    }
+}
+
 const windowWidth = () => canvas.width;
 const windowHeight = () => canvas.height;
 
+let lastTime = new Date().getTime();
+
 function getInput() {
+    let inputKeys = keys;
+    keys = []
+    let time = new Date().getTime();
+    let dt = time - lastTime;
+    lastTime = time;
     return {
         closed: false,
         mouse_pos: mousePos,
-        window_size: { x: windowWidth(), y: windowHeight() }
+        window_size: { x: windowWidth(), y: windowHeight() },
+        key_events: inputKeys,
+        keys_down: keysDown,
+        dt: dt / 1000
     };
 }
 
