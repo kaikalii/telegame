@@ -11,6 +11,7 @@ open = "3"
 serde.features = ["derive"]
 serde.version = "1"
 serde_json.version = "1"
+sha1 = "0.10.5"
 websocket.default-features = false
 websocket.features = ["sync"]
 websocket.version = "0.26.5"

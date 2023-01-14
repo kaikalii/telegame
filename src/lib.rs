@@ -2,6 +2,7 @@ mod draw;
 mod input;
 mod server;
 mod utils;
+mod websocket;
 
 pub use glam;
 pub use {draw::*, input::*, server::*};
